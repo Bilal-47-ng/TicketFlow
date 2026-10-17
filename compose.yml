@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: ticketflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ticketflow
+      POSTGRES_USER: ticketflow_user
+      POSTGRES_PASSWORD: ticketflow_dev_password
+    ports:
+      - "5442:5432"
+    volumes:
+      - ticketflow_pgdata:/var/lib/postgresql/data
+
+volumes:
+  ticketflow_pgdata:
