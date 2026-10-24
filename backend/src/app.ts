@@ -8,12 +8,12 @@ export function createApp() {
   // ROUTES
   app.use("/api", apiRouter);
 
-  //   app.get("/", (_req, res) => {
-  //     res.status(200).json({
-  //       success: true,
-  //       message: "TicketFlow API is running",
-  //     });
-  //   });
+  app.use((_req, res) => {
+    res.status(404).json({
+      success: false,
+      message: "Route not Found",
+    });
+  });
 
   return app;
 }
