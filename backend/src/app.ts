@@ -1,5 +1,7 @@
 import express from "express";
 import apiRouter from "./routes/index.js";
+import { errorMiddleware } from "./middlewares/error.middleware.js";
+import { notFoundMiddleware } from "./middlewares/not-found.middleware.js";
 
 export function createApp() {
   const app = express();
@@ -8,12 +10,8 @@ export function createApp() {
   // ROUTES
   app.use("/api", apiRouter);
 
-  app.use((_req, res) => {
-    res.status(404).json({
-      success: false,
-      message: "Route not Found",
-    });
-  });
-
+  // MIDDLEWARE
+  app.use(notFoundMiddleware);
+  app.use(errorMiddleware);
   return app;
 }

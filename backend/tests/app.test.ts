@@ -11,7 +11,7 @@ describe("Express App", () => {
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
       success: false,
-      message: "Route not Found",
+      message: "Route not found",
     });
   });
 
@@ -21,7 +21,7 @@ describe("Express App", () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
       success: false,
-      message: "id don't match regex",
+      message: "id must be a valid UUID",
     });
   });
 
