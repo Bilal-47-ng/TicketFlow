@@ -1,8 +1,29 @@
 import request from "supertest";
 import { createApp } from "../src/app.ts";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import { requireAuth } from "../src/middlewares/auth.middleware.ts";
+
+vi.mock("../src/middlewares/auth.middleware.ts", () => ({
+  requireAuth: (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
 
 const app = createApp();
+
+async function createAuthenticatedAgent() {
+  const agent = request.agent(app);
+
+  await agent.post("/api/auth/register").send({
+    email: "test@example.com",
+    password: "Password123!",
+  });
+
+  await agent.post("/api/auth/login").send({
+    email: "test@example.com",
+    password: "Password123!",
+  });
+
+  return agent;
+}
 
 describe("Express App", () => {
   it("Should return 404 for an unknown route", async () => {

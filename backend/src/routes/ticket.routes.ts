@@ -5,9 +5,11 @@ import deleteTicketController, {
   getTicketControllerById,
   updateTicketController,
 } from "../controllers/ticket.controller.js";
+import { requireAuth } from "../middlewares/auth.middleware.js";
 
 const ticketRouter = Router();
 
+ticketRouter.use(requireAuth);
 ticketRouter.get("/", getAllTicketController);
 ticketRouter.get("/:id", getTicketControllerById);
 ticketRouter.post("/", createTicketController);
