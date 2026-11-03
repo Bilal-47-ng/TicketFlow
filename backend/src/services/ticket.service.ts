@@ -24,12 +24,15 @@ function isAllowedUpdateField(key: string): key is AllowedUpdateField {
 }
 
 export async function getAllTickets(
+  userId: string,
   filters: TicketFilters = {},
   page: number = 1,
   limit: number = 10,
 ): Promise<TicketResult> {
-  const conditions: string[] = [];
-  const filterValues: (Ticket["status"] | Ticket["priority"] | string)[] = [];
+  const conditions: string[] = ["user_id = $1"];
+  const filterValues: (Ticket["status"] | Ticket["priority"] | string)[] = [
+    userId,
+  ];
 
   // 1.Build filters
   if (filters.status !== undefined) {
@@ -91,13 +94,16 @@ export async function getAllTickets(
   };
 }
 
-export async function getTicketById(id: string): Promise<Ticket | undefined> {
+export async function getTicketById(
+  id: string,
+  userId: string,
+): Promise<Ticket | undefined> {
   const result = await pool.query<Ticket>(
     `
         SELECT * FROM tickets
-        WHERE id = $1
+        WHERE id = $1 AND user_id = $2
         `,
-    [id],
+    [id, userId],
   );
 
   return result.rows[0];
@@ -127,6 +133,7 @@ export async function createTicket(
 
 export async function updateTicket(
   id: string,
+  userId: string,
   updates: TicketUpdateInput,
 ): Promise<Ticket | undefined> {
   const fields = Object.entries(updates);
@@ -154,12 +161,13 @@ export async function updateTicket(
   });
 
   values.push(id);
+  values.push(userId);
 
   const result = await pool.query<Ticket>(
     `
     UPDATE tickets
     SET ${setClauses.join(", ")}, updated_at = NOW()
-    WHERE id = $${values.length}
+    WHERE id = $${values.length - 1} AND user_id = $${values.length}
     RETURNING *
     `,
     values,
@@ -168,14 +176,17 @@ export async function updateTicket(
   return result.rows[0];
 }
 
-export async function deleteTicket(id: string): Promise<Ticket | undefined> {
+export async function deleteTicket(
+  id: string,
+  userId: string,
+): Promise<Ticket | undefined> {
   const result = await pool.query(
     `
     DELETE FROM tickets
-    WHERE id = $1
+    WHERE id = $1 AND user_id = $2
     RETURNING *
     `,
-    [id],
+    [id, userId],
   );
 
   return result.rows[0];

@@ -14,6 +14,7 @@ import {
   TicketUpdateInput,
 } from "../types/ticket.js";
 import { AppError } from "../errors/AppError.js";
+import { validUuid } from "../utils/validation.js";
 
 export async function getAllTicketController(req: Request, res: Response) {
   const pageParam = req.query.page;
@@ -94,7 +95,9 @@ export async function getAllTicketController(req: Request, res: Response) {
   }
 
   // Fetch tickets
-  const result = await getAllTickets(filters, page, limit);
+
+  const userId = req.session.userId!;
+  const result = await getAllTickets(userId, filters, page, limit);
 
   const totalPages = Math.ceil(result.total / limit);
 
@@ -110,13 +113,6 @@ export async function getAllTicketController(req: Request, res: Response) {
   });
 }
 
-function validUuid(id: string) {
-  const uuidRegex =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-  return uuidRegex.test(id);
-}
-
 export async function getTicketControllerById(
   req: Request<{ id: string }>,
   res: Response,
@@ -130,7 +126,8 @@ export async function getTicketControllerById(
     });
   }
 
-  const data = await getTicketById(id);
+  const userId = req.session.userId!;
+  const data = await getTicketById(id, userId);
 
   if (!data) {
     throw new AppError(404, "ticket not found");
@@ -143,38 +140,27 @@ export async function getTicketControllerById(
 }
 
 export async function createTicketController(req: Request, res: Response) {
-  const { userId, title, description } = req.body;
+  const { title, description } = req.body;
 
-  if (
-    typeof userId !== "string" ||
-    typeof title !== "string" ||
-    typeof description !== "string"
-  ) {
+  if (typeof title !== "string" || typeof description !== "string") {
     return res.status(400).json({
       success: false,
-      message: "userId, title and description must be strings",
+      message: "Title and description must be strings",
     });
   }
 
-  const cleanUserId = userId.trim();
   const cleanTitle = title.trim();
   const cleanDescription = description.trim();
 
-  if (!cleanUserId || !cleanTitle || !cleanDescription) {
+  if (!cleanTitle || !cleanDescription) {
     return res.status(400).json({
       success: false,
-      message: "userId, title and description are required",
+      message: "Title and description are required",
     });
   }
 
-  if (!validUuid(cleanUserId)) {
-    return res.status(400).json({
-      success: false,
-      message: "userId must be a valid UUID",
-    });
-  }
-
-  const data = await createTicket(cleanUserId, cleanTitle, cleanDescription);
+  const userId = req.session.userId!;
+  const data = await createTicket(userId, cleanTitle, cleanDescription);
 
   return res.status(201).json({
     success: true,
@@ -298,7 +284,8 @@ export async function updateTicketController(
     updates.priority = priority as TicketPriority;
   }
 
-  const data = await updateTicket(id, updates);
+  const userId = req.session.userId!;
+  const data = await updateTicket(id, userId, updates);
 
   if (!data) {
     throw new AppError(404, "ticket not found");
@@ -323,7 +310,8 @@ export default async function deleteTicketController(
     });
   }
 
-  const data = await deleteTicket(id);
+  const userId = req.session.userId!;
+  const data = await deleteTicket(id, userId);
 
   if (!data) {
     throw new AppError(404, "ticket not found");
