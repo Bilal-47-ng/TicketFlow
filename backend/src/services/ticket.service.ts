@@ -1,18 +1,38 @@
 import { pool } from "../config/db.js";
-import {
+import type {
   Ticket,
   TicketFilters,
-  TicketStatus,
   TicketUpdateInput,
 } from "../types/ticket.js";
 
+type TicketResult = {
+  tickets: Ticket[];
+  total: number;
+};
+
+const allowedColumns = {
+  title: "title",
+  description: "description",
+  status: "status",
+  priority: "priority",
+} as const;
+
+type AllowedUpdateField = keyof typeof allowedColumns;
+
+function isAllowedUpdateField(key: string): key is AllowedUpdateField {
+  return Object.hasOwn(allowedColumns, key);
+}
+
 export async function getAllTickets(
+  userId: string,
   filters: TicketFilters = {},
   page: number = 1,
   limit: number = 10,
-): Promise<{ tickets: Ticket[]; total: number }> {
-  const conditions: string[] = [];
-  const filterValues: (Ticket["status"] | Ticket["priority"] | string)[] = [];
+): Promise<TicketResult> {
+  const conditions: string[] = ["user_id = $1"];
+  const filterValues: (Ticket["status"] | Ticket["priority"] | string)[] = [
+    userId,
+  ];
 
   // 1.Build filters
   if (filters.status !== undefined) {
@@ -23,13 +43,15 @@ export async function getAllTickets(
     filterValues.push(filters.priority);
     conditions.push(`priority = $${filterValues.length}`);
   }
-  if (filters.search !== undefined) {
-    if (filters.search?.trim()) {
-      filterValues.push(`%${filters.search}%`);
-      conditions.push(
-        `(title ILIKE $${filterValues.length} OR description ILIKE $${filterValues.length})`,
-      );
-    }
+
+  const search = filters.search?.trim();
+
+  if (search) {
+    filterValues.push(`%${search}%`);
+    const searchIndex = filterValues.length;
+    conditions.push(
+      `(title ILIKE $${searchIndex} OR description ILIKE $${searchIndex})`,
+    );
   }
 
   // Build WHERE clause
@@ -38,11 +60,9 @@ export async function getAllTickets(
 
   // 3. Pagination
   const offset = (page - 1) * limit;
-
-  const ticketValues = [...filterValues, limit, offset];
-
   const limitIndex = filterValues.length + 1;
   const offsetIndex = filterValues.length + 2;
+  const ticketValues = [...filterValues, limit, offset];
 
   // Execute queries
   const [ticketsResult, countResult] = await Promise.all([
@@ -70,17 +90,20 @@ export async function getAllTickets(
 
   return {
     tickets: ticketsResult.rows,
-    total: Number(countResult.rows[0].total),
+    total: Number(countResult.rows[0].total ?? 0),
   };
 }
 
-export async function getTicketById(id: string): Promise<Ticket | undefined> {
+export async function getTicketById(
+  id: string,
+  userId: string,
+): Promise<Ticket | undefined> {
   const result = await pool.query<Ticket>(
     `
         SELECT * FROM tickets
-        WHERE id = $1
+        WHERE id = $1 AND user_id = $2
         `,
-    [id],
+    [id, userId],
   );
 
   return result.rows[0];
@@ -90,7 +113,7 @@ export async function createTicket(
   userId: string,
   title: string,
   description: string,
-): Promise<Ticket | undefined> {
+): Promise<Ticket> {
   const result = await pool.query<Ticket>(
     `
     INSERT INTO tickets (user_id, title, description)
@@ -100,11 +123,17 @@ export async function createTicket(
     [userId, title, description],
   );
 
-  return result.rows[0];
+  const ticket = result.rows[0];
+
+  if (!ticket) {
+    throw new Error("Ticket was not returned after creation");
+  }
+  return ticket;
 }
 
 export async function updateTicket(
   id: string,
+  userId: string,
   updates: TicketUpdateInput,
 ): Promise<Ticket | undefined> {
   const fields = Object.entries(updates);
@@ -113,29 +142,32 @@ export async function updateTicket(
     return undefined;
   }
 
-  // Column names are fixed and trusted
-  const allowedColumns = {
-    title: "title",
-    description: "description",
-    status: "status",
-    priority: "priority",
-  } as const;
+  // Validare all keys before building the sql statement.
+  const validatedFields = fields.map(([key, value]) => {
+    if (!isAllowedUpdateField(key)) {
+      throw new Error(`Invalid ticket update field: ${key}`);
+    }
+
+    return { key, value };
+  });
 
   const values: unknown[] = [];
-  const setClauses = fields.map(([key, value], index) => {
-    const column = allowedColumns[key as keyof typeof allowedColumns];
 
+  const setClauses = validatedFields.map(({ key, value }, index) => {
+    const column = allowedColumns[key];
     values.push(value);
 
     return `${column} = $${index + 1}`;
   });
 
   values.push(id);
+  values.push(userId);
+
   const result = await pool.query<Ticket>(
     `
     UPDATE tickets
     SET ${setClauses.join(", ")}, updated_at = NOW()
-    WHERE id = $${values.length}
+    WHERE id = $${values.length - 1} AND user_id = $${values.length}
     RETURNING *
     `,
     values,
@@ -144,14 +176,17 @@ export async function updateTicket(
   return result.rows[0];
 }
 
-export async function deleteTicket(id: string): Promise<Ticket | undefined> {
+export async function deleteTicket(
+  id: string,
+  userId: string,
+): Promise<Ticket | undefined> {
   const result = await pool.query(
     `
     DELETE FROM tickets
-    WHERE id = $1
+    WHERE id = $1 AND user_id = $2
     RETURNING *
     `,
-    [id],
+    [id, userId],
   );
 
   return result.rows[0];
