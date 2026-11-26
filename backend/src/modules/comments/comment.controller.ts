@@ -1,13 +1,14 @@
 import { Request, Response } from "express";
-import { AppError } from "../errors/AppError.js";
+import { AppError } from "../../errors/AppError.js";
 import {
   createComment,
   deleteComment,
   getCommentsByTicketId,
   updateComment,
-} from "../services/comment.service.js";
-import { validUuid } from "../utils/validation.js";
-import { getTicketById } from "../services/ticket.service.js";
+} from "./comment.service.js";
+import { validUuid } from "../../utils/validation.js";
+import { getTicketById } from "../tickets/ticket.service.js";
+// import { getTicketById } from "../services/ticket.service.js";
 
 export async function createCommentController(req: Request, res: Response) {
   const ticketId = req.params.ticketId;

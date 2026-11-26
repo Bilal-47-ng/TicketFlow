@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { pool } from "../src/config/db";
-import { updateTicket } from "../src/services/ticket.service.js";
+import { updateTicket } from "../src/modules/tickets/ticket.service.js";
 import { TicketUpdateInput } from "../src/types/ticket.js";
 
 vi.mock("../src/config/db.ts", () => ({

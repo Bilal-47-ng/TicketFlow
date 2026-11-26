@@ -4,6 +4,7 @@ import { errorMiddleware } from "./middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./middlewares/not-found.middleware.js";
 import { sessionMiddleware } from "./config/session.js";
 import cors from "cors";
+import { env } from "./config/env.js";
 export function createApp() {
   const app = express();
 
@@ -12,7 +13,7 @@ export function createApp() {
 
   app.use(
     cors({
-      origin: "http://localhost:5173",
+      origin: env.frontendUrl,
       credentials: true,
     }),
   );

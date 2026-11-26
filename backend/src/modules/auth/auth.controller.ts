@@ -1,10 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
-import {
-  getUserById,
-  loginUser,
-  registerUser,
-} from "../services/auth.service.js";
-import { AppError } from "../errors/AppError.js";
+import { AppError } from "../../errors/AppError.js";
+import { getUserById, loginUser, registerUser } from "./auth.service.js";
 
 export async function registerUserController(req: Request, res: Response) {
   const { email, password } = req.body;

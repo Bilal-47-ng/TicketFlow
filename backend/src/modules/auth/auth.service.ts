@@ -1,7 +1,7 @@
-import type { LoginUser, RegisteredUser } from "../types/user.js";
 import argon2 from "argon2";
-import { pool } from "../config/db.js";
-import { AppError } from "../errors/AppError.js";
+import { LoginUser, RegisteredUser } from "../../types/user.js";
+import { pool } from "../../config/db.js";
+import { AppError } from "../../errors/AppError.js";
 
 type PostgresError = Error & {
   code?: string;

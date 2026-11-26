@@ -1,9 +1,9 @@
-import { pool } from "../config/db.js";
-import type {
+import { pool } from "../../config/db.js";
+import {
   Ticket,
   TicketFilters,
   TicketUpdateInput,
-} from "../types/ticket.js";
+} from "../../types/ticket.js";
 
 type TicketResult = {
   tickets: Ticket[];

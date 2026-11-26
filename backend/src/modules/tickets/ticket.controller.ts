@@ -1,20 +1,20 @@
 import type { Request, Response } from "express";
 import {
-  createTicket,
-  deleteTicket,
-  getAllTickets,
-  getTicketById,
-  updateTicket,
-} from "../services/ticket.service.js";
-import {
   Ticket,
   TicketFilters,
   TicketPriority,
   TicketStatus,
   TicketUpdateInput,
-} from "../types/ticket.js";
-import { AppError } from "../errors/AppError.js";
-import { validUuid } from "../utils/validation.js";
+} from "../../types/ticket.js";
+import {
+  createTicket,
+  deleteTicket,
+  getAllTickets,
+  getTicketById,
+  updateTicket,
+} from "./ticket.service.js";
+import { validUuid } from "../../utils/validation.js";
+import { AppError } from "../../errors/AppError.js";
 
 export async function getAllTicketController(req: Request, res: Response) {
   const pageParam = req.query.page;

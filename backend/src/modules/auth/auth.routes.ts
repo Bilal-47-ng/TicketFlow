@@ -4,8 +4,9 @@ import {
   loginUserController,
   logoutUserController,
   registerUserController,
-} from "../controllers/auth.controller.js";
+} from "./auth.controller.js";
 
+logoutUserController;
 const authRouter = Router();
 
 authRouter.post("/register", registerUserController);

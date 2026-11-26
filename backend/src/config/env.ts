@@ -3,6 +3,7 @@ import "dotenv/config";
 const databaseUrl = process.env.DATABASE_URL;
 const port = Number(process.env.PORT ?? 3005);
 const sessionSecret = process.env.SESSION_SECRET;
+const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:5173";
 
 if (!databaseUrl) {
   throw new Error("DATABASE_URL is not defined");
@@ -20,4 +21,5 @@ export const env = {
   databaseUrl,
   port,
   sessionSecret,
+  frontendUrl,
 };

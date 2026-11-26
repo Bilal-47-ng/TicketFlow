@@ -1,5 +1,5 @@
-import { pool } from "../config/db.js";
-import { TicketComment } from "../types/comment.js";
+import { pool } from "../../config/db.js";
+import { TicketComment } from "../../types/comment.js";
 
 export async function createComment(
   ticketId: string,

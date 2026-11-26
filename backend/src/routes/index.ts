@@ -1,6 +1,6 @@
-import { Router, Request, Response } from "express";
-import ticketRouter from "./ticket.routes.js";
-import authRouter from "./auth.routes.js";
+import { Router } from "express";
+import authRouter from "../modules/auth/auth.routes.js";
+import ticketRouter from "../modules/tickets/ticket.routes.js";
 
 const apiRouter = Router();
 
