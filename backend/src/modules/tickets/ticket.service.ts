@@ -2,6 +2,7 @@ import { pool } from "../../config/db.js";
 import {
   Ticket,
   TicketFilters,
+  TicketStatistics,
   TicketUpdateInput,
 } from "../../types/ticket.js";
 
@@ -190,4 +191,33 @@ export async function deleteTicket(
   );
 
   return result.rows[0];
+}
+
+export async function getTicketStatistics(
+  userId: string,
+): Promise<TicketStatistics> {
+  const result = await pool.query<{
+    total: string;
+    open: string;
+    in_progress: string;
+    resolved: string;
+  }>(
+    `
+    SELECT
+      COUNT(*) AS total,
+      COUNT(*) FILTER (WHERE status = 'OPEN') AS open,
+      COUNT(*) FILTER (WHERE status = 'IN_PROGRESS') AS in_progress,
+      COUNT(*) FILTER (WHERE status = 'RESOLVED') AS resolved
+    FROM tickets
+    WHERE user_id = $1
+    `,
+    [userId],
+  );
+
+  return {
+    total: Number(result.rows[0].total),
+    open: Number(result.rows[0].open),
+    in_progress: Number(result.rows[0].in_progress),
+    resolved: Number(result.rows[0].resolved),
+  };
 }

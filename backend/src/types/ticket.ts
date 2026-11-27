@@ -24,3 +24,10 @@ export type TicketFilters = {
   priority?: Ticket["priority"];
   search?: string;
 };
+
+export type TicketStatistics = {
+  total: number;
+  open: number;
+  in_progress: number;
+  resolved: number;
+};

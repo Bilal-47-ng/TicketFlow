@@ -11,6 +11,7 @@ import {
   deleteTicket,
   getAllTickets,
   getTicketById,
+  getTicketStatistics,
   updateTicket,
 } from "./ticket.service.js";
 import { validUuid } from "../../utils/validation.js";
@@ -320,5 +321,19 @@ export default async function deleteTicketController(
   return res.status(200).json({
     success: true,
     data,
+  });
+}
+
+export async function getTicketStatisticsController(
+  req: Request,
+  res: Response,
+) {
+  const userId = req.session.userId!;
+
+  const result = await getTicketStatistics(userId);
+
+  return res.status(200).json({
+    success: true,
+    data: result,
   });
 }
